@@ -1,0 +1,28 @@
+{
+  "name": "patricia",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "chai": "^4.2.0",
+    "ethereumjs-util": "^6.2.0",
+    "ganache-cli": "^6.9.1",
+    "kool-makerpccall": "^0.1.1",
+    "merkle-patricia-tree": "^3.0.0",
+    "rlp": "^2.2.4",
+    "safe-buffer": "^5.2.0",
+    "solc": "^0.6.4",
+    "web3": "^1.2.6",
+    "web3-eth-abi": "^1.2.6"
+  },
+  "devDependencies": {
+    "ethereumjs-account": "^3.0.0",
+    "mocha": "^7.1.0"
+  }
+}
