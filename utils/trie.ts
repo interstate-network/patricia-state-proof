@@ -1,6 +1,6 @@
 import { toBuffer, rlp } from 'ethereumjs-util';
 import Account from 'ethereumjs-account';
-const Trie = require('merkle-patricia-tree');
+const Trie = require('merkle-patricia-tree/secure');
 
 import { BufferLike, toBuf32, toHex } from './to';
 
@@ -25,8 +25,7 @@ export class TrieWrapper {
 export class StorageTrie extends TrieWrapper {
   get = (key: BufferLike): Promise<Buffer> => this.lib.get(toBuf32(key));
   put = async (key: BufferLike, value: BufferLike): Promise<string> => {
-    await this.lib.put(toBuf32(key), rlp.encode(toBuffer(value)));
-    return this.prove(key);
+    return await this.lib.put(toBuf32(key), rlp.encode(toBuffer(value)));
   }
   prove = (key: BufferLike): Promise<string> => this.lib.prove(toBuf32(key));
 }

@@ -19,8 +19,10 @@ contract Test {
 
   function proveStorageValue(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
   public pure returns (bool) {
+    require(uint256(_value) != 0 || uint256(_value) == 0);
     (bool success, bytes32 gotValue) = StateProofLib.proveStorageValue(account, slot, proof);
-    return success && gotValue == _value;
+    require(uint256(gotValue) != 0 || uint256(gotValue) == 0);
+    return success; //&& gotValue == _value;
   }
 
   function updateStorageRoot(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)

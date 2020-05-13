@@ -1,9 +1,15 @@
 const { Buffer } = require('safe-buffer');
-const { addHexPrefix, toBuffer, stripHexPrefix, bufferToHex } = require('ethereumjs-util');
+const { keccak256, addHexPrefix, toBuffer, stripHexPrefix, bufferToHex } = require('ethereumjs-util');
 const rlp = require('rlp');
 const Trie = require('merkle-patricia-tree');
+const SecureTrie = require('merkle-patricia-tree/secure');
 const TrieNode = require('merkle-patricia-tree/trieNode');
 const { matchingNibbleLength } = require('merkle-patricia-tree/util');
+const { toBuf32 } = require('./to');
+
+const castToBaseTrie = (secureTrie) => {
+  return new Trie(secureTrie.db, secureTrie.root);
+};
 
 const lib = (trie) => ({
   del: (key) => new Promise((resolve, reject) => {
@@ -26,11 +32,13 @@ const lib = (trie) => ({
     )
   ),
   prove: async (key) => {
+    const isSecure = Object.getPrototypeOf(trie) === SecureTrie.prototype; // proper technique to see if its secure or not, MPT does weird inheritance stuff that I also just can afford to be ignorant of
+    const baseTrie = isSecure ? castToBaseTrie(trie) : trie;
     try {
-      const nibbles = TrieNode.stringToNibbles(toBuffer(key));
-      const simpleProof = await new Promise((resolve, reject) =>
-        trie.findPath(
-          toBuffer(key),
+      key = isSecure ? keccak256(key) : key;
+      const nibbles = TrieNode.stringToNibbles(key);
+      const simpleProof = await new Promise((resolve, reject) => baseTrie.findPath(
+          key,
           (err, _, __, proof) => err
             ? reject(err)
             : resolve(proof.map((v) => v.serialize()))
@@ -84,12 +92,10 @@ const lib = (trie) => ({
               // console.log(divergentNibble)
               let extendPath = nibbles.slice(0, divergentSearch.nibblesPassed).concat(divergentNibble).map((v) => v.toString(16));
               if (extendPath.length & 0x1) extendPath.push('0');
-              divergent = (await new Promise((resolve, reject) =>
-                trie.findPath(
+              divergent = await new Promise((resolve, reject) => baseTrie.findPath(
                   toBuffer(addHexPrefix(extendPath.join(''))),
                   (err, n, m, path) => err ? reject(err) : resolve(path[path.length - 1].serialize()))
-                )
-              );
+                );
             }
           }
         }
@@ -102,8 +108,7 @@ const lib = (trie) => ({
       // console.log(e.stack);
       return bufferToHex(Buffer.concat([
         Buffer.from([0xff]),
-        rlp.encode((await new Promise((resolve, reject) =>
-          trie.findPath(
+        rlp.encode((await new Promise((resolve, reject) => baseTrie.findPath(
             toBuffer(key),
             (err, _, __, path) => err ? reject(err) : resolve(path)))).map((v) => v.raw))
       ]));

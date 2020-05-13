@@ -20,10 +20,13 @@ library StateProofLib {
     bytes newValue;
     bytes proof;
   }
+  function calculateTrieKeyFromAddress(address accountAddress) internal pure returns (bytes memory) {
+    return abi.encodePacked(keccak256(abi.encodePacked(accountAddress)));
+  }
 
   function proveAccountInState(bytes32 stateRoot, address accountAddress, bytes memory proof)
   internal pure returns (bool inState, Account.Account memory account) {
-    bytes memory key = RLP.toCompact(uint256(accountAddress));
+    bytes memory key = calculateTrieKeyFromAddress(accountAddress);
     (bool success, TRL.TraversalRecord memory tail) = MPT.verifyProof(stateRoot, key, proof);
     account = Account.decodeAccount(tail.getValue());
     inState = success;
@@ -37,7 +40,7 @@ library StateProofLib {
     Account.Account memory account,
     bytes32 newStateRoot
   ) {
-    bytes memory key = RLP.toCompact(uint256(accountAddress));
+    bytes memory key = calculateTrieKeyFromAddress(accountAddress);
     // make sure the proof is valid, get the traversal record
     (bool inState, TRL.TraversalRecord memory tail) = MPT.verifyProof(stateRoot, key, proof);
     require(inState, "Invalid state proof.");
@@ -62,16 +65,17 @@ library StateProofLib {
 
   function proveStorageValue(Account.Account memory account, bytes32 slot, bytes memory proof)
   internal pure returns (bool, bytes32) {
-    bytes memory key = RLP.toCompact(uint256(slot));
+    bytes memory key = computeStorageKey(slot);
     (bool success, TRL.TraversalRecord memory tail) = MPT.verifyProof(account.stateRoot, key, proof);
     if (!success) return (false, bytes32(0));
-    bytes32 retrievedValue = RLP.decodePrefixedWord(tail.getValue());
-    return (success, retrievedValue);
+    return (true, bytes32(RLP.decodePrefixedWord(tail.getValue())));
   }
-
+  function computeStorageKey(bytes32 slot) internal pure returns (bytes memory key) {
+    key = abi.encodePacked(keccak256(abi.encodePacked(slot)));
+  }
   function updateStateRoot(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
   internal pure returns (bool inStorage, bytes32 newRoot, bytes32 oldValue) {
-    bytes memory key = RLP.toCompact(uint256(slot));
+    bytes memory key = computeStorageKey(slot);
     (bool isValid, TRL.TraversalRecord memory tail) = MPT.verifyProof(account.stateRoot, key, proof);
     oldValue = RLP.decodePrefixedWord(tail.getValue());
     bytes memory newValue = RLP.encodeWithPrefix(uint256(_value));
