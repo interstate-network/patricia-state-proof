@@ -43,23 +43,21 @@ describe("StateProofLib.sol", () => {
         balance: 500,
         stateRoot: Buffer.alloc(32, 5, 'hex')
       });
-      key = randomHexString(20);
+      key = randomHexString(32);
       await trie.putAccount(key, account);
       /* Put some random elements in the trie */
-      // for (let i = 0; i < 100; i++) {
-      //   const _key = randomHexString(32);
-      //   const val = randomHexString(30);
-      //   await trie.put(_key, val)
-      //   // await lib.put(trie, _key, val)
-      // }
+      for (let i = 0; i < 100; i++) {
+        const _key = randomHexString(32);
+        const val = randomHexString(32);
+        await trie.put(_key, val)
+        // await lib.put(trie, _key, val)
+      }
       proof = await trie.getAccountProof(key);
       root = bufferToHex(trie.root);
     })
 
     it('Should prove an account exists in a patricia merkle trie', async () => {
-      console.log(root)
-      console .log(proof)
-      const result = await contract.methods.proveAccountInState(root, key, proof).call();
+      const result = await contract.methods.proveAccountInState(root, key.slice(0, 42), proof).call();
       expect(result.inState).to.eq(true);
       console.log(result.account)
       expect(+result.account.nonce).to.eq(bufferToInt(account.nonce));
@@ -69,8 +67,8 @@ describe("StateProofLib.sol", () => {
     });
   
     it('Should fail to prove an account that does not exist in the trie', async () => {
-      const randKey = randomHexString(20)
-      const result = await contract.methods.proveAccountInState(root, randKey, proof).call();
+      const randKey = randomHexString(32)
+      const result = await contract.methods.proveAccountInState(root, randKey.slice(0, 42), proof).call();
       expect(result.inState).to.eq(false);
     });
   })
@@ -85,13 +83,13 @@ describe("StateProofLib.sol", () => {
         stateRoot: Buffer.alloc(32, 5, 'hex')
       });
       // encoded = account.serialize();
-      key = randomHexString(20);
+      key = randomHexString(32);
       await trie.putAccount(key, account)
       // await lib.put(trie, key, bufferToHex(encoded));
       /* Put some random elements in the trie */
       for (let i = 0; i < 100; i++) {
         const _key = randomHexString(32);
-        const val = randomHexString(30);
+        const val = randomHexString(32);
         await trie.put(_key, val)
       }
       root = bufferToHex(trie.root);
@@ -99,7 +97,7 @@ describe("StateProofLib.sol", () => {
     });
 
     it('Should increase an account balance and calculate the new root', async () => {
-      const result = await contract.methods.updateAccountBalance(root, key, proof, 250, true).call();
+      const result = await contract.methods.updateAccountBalance(root, key.slice(0, 42), proof, 250, true).call();
       expect(result.isEmpty).to.eq(false);
       expect(result.balanceOk).to.eq(true);
       expect(result.account.balance).to.eq('750');
@@ -150,7 +148,7 @@ describe("StateProofLib.sol", () => {
       /* Put some random elements in the trie */
       for (let i = 0; i < 100; i++) {
         const _key = randomHexString(32);
-        const val = randomHexString(30);
+        const val = randomHexString(32);
         await trie.put(_key, val)
       }
       root = bufferToHex(trie.root);
@@ -165,7 +163,7 @@ describe("StateProofLib.sol", () => {
 
     it('Should prove a value at a storage slot', async () => {
       const valHex = ['0x', '00'.repeat(31), '96'].join('')
-      const result = await contract.methods.proveStorageValue(account, key, valHex, proof).call();
+      const result = await contract.methods.proveStorageValue(account, key.slice(0, 42), valHex, proof).call();
       expect(result).to.eq(true);
     })
   })
@@ -180,7 +178,7 @@ describe("StateProofLib.sol", () => {
       /* Put some random elements in the trie */
       for (let i = 0; i < 100; i++) {
         const _key = randomHexString(32);
-        const val = randomHexString(30);
+        const val = randomHexString(32);
         await trie.put(_key, val)
       }
       root = bufferToHex(trie.root);
@@ -196,7 +194,7 @@ describe("StateProofLib.sol", () => {
     it('Should update a value at a storage slot', async () => {
       const valHex = ['0x', '00'.repeat(31), '96'].join('');
       const newValHex = ['0x', '00'.repeat(31), '95'].join('');
-      const result = await contract.methods.updateStorageRoot(account, key, newValHex, proof).call();
+      const result = await contract.methods.updateStorageRoot(account, key.slice(0, 42), newValHex, proof).call();
       expect(result.oldValue).to.eq(valHex);
       expect(result.inStorage).to.eq(true);
       await trie.put(key, 149);
