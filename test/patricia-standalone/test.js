@@ -1,25 +1,19 @@
-'use strict';
 const standard = require('./build/standard.json');
 const rpcCall = require('kool-makerpccall');
 const ganache = require('ganache-cli');
 const path = require('path');
 const abi = require('web3-eth-abi');
 const { expect } = require('chai');
+const Trie = require('merkle-patricia-tree');
 
 const provider = ganache.provider({
   hardfork: 'istanbul'
 });
-const Trie = require('merkle-patricia-tree');
 
-const rlp = require('rlp');
 const lib = require('./lib');
-const { addHexPrefix, bufferToHex, stripHexPrefix } = require('ethereumjs-util');
-
-const fs = require('fs');
+import { addHexPrefix, bufferToHex, stripHexPrefix } from 'ethereumjs-util';
 
 const call = (method, params = []) => rpcCall(provider, method, params);
-//const bin = '0x' + fs.readFileSync(path.join(__dirname, 'build', '___test_Test_sol_Test.bin'), 'utf8');
-// const bin = '0x' + fs.readFileSync(path.join(__dirname, 'build', '___test_Test_sol_Test.bin'), 'utf8');
 const bin = standard["Test.sol"].Test.evm.bytecode.object;
 
 describe('mpt implementation', () => {

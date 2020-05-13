@@ -1,5 +1,3 @@
-'use strict';
-
 const { Buffer } = require('safe-buffer');
 const { addHexPrefix, toBuffer, stripHexPrefix, bufferToHex } = require('ethereumjs-util');
 const rlp = require('rlp');
@@ -7,22 +5,27 @@ const Trie = require('merkle-patricia-tree');
 const TrieNode = require('merkle-patricia-tree/trieNode');
 const { matchingNibbleLength } = require('merkle-patricia-tree/util');
 
-
-Object.assign(module.exports, {
-  get: (trie, key) => new Promise((resolve, reject) =>
+const lib = (trie) => ({
+  del: (key) => new Promise((resolve, reject) => {
+    trie.put(
+      toBuffer(key), null,
+      (err, result) => err ? reject(err) : resolve(result)
+    )
+  }),
+  get: (key) => new Promise((resolve, reject) =>
     trie.get(
       toBuffer(key),
       (err, result) => err ? reject(err) : resolve(result)
     )
   ),
-  put: (trie, key, val) => new Promise((resolve, reject) => 
+  put: (key, val) => new Promise((resolve, reject) => 
     trie.put(
       toBuffer(key),
       toBuffer(val),
       (err, result) => err ? reject(err) : resolve(result)
     )
   ),
-  prove: async (trie, key) => {
+  prove: async (key) => {
     try {
       const nibbles = TrieNode.stringToNibbles(toBuffer(key));
       const simpleProof = await new Promise((resolve, reject) =>
@@ -108,7 +111,4 @@ Object.assign(module.exports, {
   }
 });
 
-/*
-.catch(() => new Promise((resolve, reject) => trie.findPath(toBuffer(key), (err, _, __, path) => err ? reject(err) : resolve((path.map((v) => v.raw)))))).then((proof) => bufferToHex(Buffer.concat([ Buffer.from([0xff]), rlp.encode(proof) ])))
-});
-*/
+module.exports = lib;

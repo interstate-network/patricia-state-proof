@@ -6,14 +6,14 @@ library RLPAccountLib {
   struct Account {
     uint256 nonce;
     uint256 balance;
-    bytes32 storageRoot;
+    bytes32 stateRoot;
     bytes32 codeHash;
   }
 
   function encodeAccount(Account memory account) internal pure returns (bytes memory) {
     uint256 nonce = account.nonce;
     uint256 _balance = account.balance;
-    bytes32 storageRoot = account.storageRoot;
+    bytes32 stateRoot = account.stateRoot;
     bytes32 codeHash = account.codeHash;
     uint256 nonceSize = RLP.sizeofNumber(nonce);
     uint256 balanceSize = RLP.sizeofNumber(_balance);
@@ -65,7 +65,7 @@ library RLPAccountLib {
 
       mstore8(ptr, 0xa0)
       ptr := add(ptr, 1)
-      mstore(ptr, storageRoot)
+      mstore(ptr, stateRoot)
       ptr := add(ptr, 0x20)
 
       mstore8(ptr, 0xa0)
@@ -80,12 +80,12 @@ library RLPAccountLib {
   function decodeAccount(bytes memory encoded) internal pure returns (Account memory account) {
     uint256 nonce;
     uint256 _balance;
-    bytes32 storageRoot;
+    bytes32 stateRoot;
     bytes32 codeHash;
     if (encoded.length == 0) return Account({
       nonce: 0,
       balance: 0,
-      storageRoot: 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421,
+      stateRoot: 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421,
       codeHash: 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470
     });
     assembly {
@@ -108,9 +108,9 @@ library RLPAccountLib {
       nonce, ptr := getVal(ptr)
       _balance, ptr := getVal(ptr)
       ptr := add(ptr, 1)
-      storageRoot := mload(ptr)
+      stateRoot := mload(ptr)
       codeHash := mload(add(ptr, 33))
     }
-    return Account(nonce, _balance, storageRoot, codeHash);
+    return Account(nonce, _balance, stateRoot, codeHash);
   }
 }

@@ -19,6 +19,12 @@ contract Test {
 
   function proveStorageValue(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
   public pure returns (bool) {
-    return StateProofLib.proveStorageValue(account, slot, _value, proof);
+    (bool success, bytes32 gotValue) = StateProofLib.proveStorageValue(account, slot, proof);
+    return success && gotValue == _value;
+  }
+
+  function updateStorageRoot(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
+  public pure returns (bool inStorage, bytes32 newRoot, bytes32 oldValue) {
+    return StateProofLib.updateStateRoot(account, slot, _value, proof);
   }
 }

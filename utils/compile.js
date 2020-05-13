@@ -1,4 +1,3 @@
-// const easySolc = require('easy-solc');
 const solc = require('solc');
 const path = require('path');
 const fs = require('fs');

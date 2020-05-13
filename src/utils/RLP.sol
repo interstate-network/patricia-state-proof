@@ -89,6 +89,47 @@ library RLP {
       mstore(dest, or(and(mload(src), not(mask)), and(mload(dest), mask)))
     }
   }
+
+  function encodeWithPrefix(uint256 word) internal pure returns (bytes memory retval) {
+    uint256 size = sizeofNumber(word);
+    uint256 prefixSize = word < 0x80 ? 0 : 1;
+    retval = new bytes(size + prefixSize);
+    assembly {
+      let ptr := add(retval, 0x20)
+      switch prefixSize
+      case 0 {
+        /* If prefix size is 0, store word as the only byte */
+        mstore8(ptr, word)
+      }
+      default {
+        /* Otherwise, store size as the next byte and then store the word as the next n bytes */
+        mstore8(ptr, add(0x80, size))
+        ptr := add(ptr, 1)
+        mstore(ptr, shl(sub(0x100, mul(size, 8)), word))
+      }
+    }
+  }
+
+  function decodePrefixedWord(bytes memory encodedValue) internal pure returns (bytes32 value) {
+    if (encodedValue.length == 0) return bytes32(0);
+    assembly {
+      function decodeWord(_ptr) -> val {
+        let prefix := shr(0xf8, mload(_ptr))
+        _ptr := add(_ptr, 1)
+        switch lt(prefix, 0x80)
+        case 0 {
+          let len := sub(prefix, 0x80)
+          val := shr(sub(256, mul(len, 8)), mload(_ptr))
+        }
+        default {
+          val := prefix
+        }
+      }
+      let ptr := add(encodedValue, 0x20)
+      value := decodeWord(ptr)
+    }
+  }
+
   function toCompact(uint256 word) internal pure returns (bytes memory retval) {
     uint256 size = sizeofNumber(word);
     if (size == 0) retval = new bytes(0);

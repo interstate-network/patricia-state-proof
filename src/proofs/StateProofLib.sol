@@ -60,38 +60,21 @@ library StateProofLib {
     newStateRoot = MPT.updateRoot(tail, encodedNewAccount);
   }
 
-  function proveStorageValue(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
-  internal pure returns (bool) {
+  function proveStorageValue(Account.Account memory account, bytes32 slot, bytes memory proof)
+  internal pure returns (bool, bytes32) {
     bytes memory key = RLP.toCompact(uint256(slot));
-    (bool success, TRL.TraversalRecord memory tail) = MPT.verifyProof(account.storageRoot, key, proof);
-    if (!success) return false;
-    bytes memory gotValue = tail.getValue();
-    bytes32 retrievedValue;
-    assembly {
-      function decodeWord(_ptr) -> val {
-        let prefix := shr(0xf8, mload(_ptr))
-        _ptr := add(_ptr, 1)
-        switch lt(prefix, 0x80)
-        case 0 {
-          let len := sub(prefix, 0x80)
-          val := shr(sub(256, mul(len, 8)), mload(_ptr))
-        }
-        default {
-          val := prefix
-        }
-      }
-      let ptr := add(gotValue, 0x20)
-      retrievedValue := decodeWord(ptr)
-    }
-    return retrievedValue == _value;
+    (bool success, TRL.TraversalRecord memory tail) = MPT.verifyProof(account.stateRoot, key, proof);
+    if (!success) return (false, bytes32(0));
+    bytes32 retrievedValue = RLP.decodePrefixedWord(tail.getValue());
+    return (success, retrievedValue);
   }
 
-  function updateStorageRoot(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
-  internal pure returns (bool inStorage, bytes32 newRoot, bytes memory oldValue) {
+  function updateStateRoot(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
+  internal pure returns (bool inStorage, bytes32 newRoot, bytes32 oldValue) {
     bytes memory key = RLP.toCompact(uint256(slot));
-    (bool isValid, TRL.TraversalRecord memory tail) = MPT.verifyProof(account.storageRoot, key, proof);
-    oldValue = tail.getValue();
-    bytes memory newValue = RLP.toCompact(uint256(_value));
+    (bool isValid, TRL.TraversalRecord memory tail) = MPT.verifyProof(account.stateRoot, key, proof);
+    oldValue = RLP.decodePrefixedWord(tail.getValue());
+    bytes memory newValue = RLP.encodeWithPrefix(uint256(_value));
     newRoot = MPT.updateRoot(tail, newValue);
     inStorage = isValid;
   }
