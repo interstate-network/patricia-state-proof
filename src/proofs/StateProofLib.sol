@@ -20,6 +20,7 @@ library StateProofLib {
     bytes newValue;
     bytes proof;
   }
+
   function calculateTrieKeyFromAddress(address accountAddress) internal pure returns (bytes memory) {
     return abi.encodePacked(keccak256(abi.encodePacked(accountAddress)));
   }
@@ -28,6 +29,14 @@ library StateProofLib {
   internal pure returns (bool inState, Account.Account memory account) {
     bytes memory key = calculateTrieKeyFromAddress(accountAddress);
     (bool success, TRL.TraversalRecord memory tail) = MPT.verifyProof(stateRoot, key, proof);
+    // Monkey patch
+    // bytes memory data = tail.getValue();
+    // if (
+    //   data.length == 0 &&
+    //   stateRoot == 0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421
+    // ) inState = true;
+    // else inState = success;
+    // account = Account.decodeAccount(data);
     account = Account.decodeAccount(tail.getValue());
     inState = success;
   }
