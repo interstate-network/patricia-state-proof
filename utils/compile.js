@@ -44,7 +44,7 @@ function compile(dir, fileName, importPath) {
     }
     throw new Error()
   }
-  fs.writeFileSync('./standard.json', JSON.stringify(output, null, 2));
+  // fs.writeFileSync('./standard.json', JSON.stringify(output, null, 2));
   return output.contracts;
 }
 
