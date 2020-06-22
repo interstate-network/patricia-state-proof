@@ -31,7 +31,7 @@ describe("RLPAccountLib.sol", () => {
 
   it('encodes an account', async () => {
     const result = await contract.methods.encodeAccount(account).call();
-    expect(result).to.eql(bufferToHex(account.serialize()))
+    expect(result).to.eql(bufferToHex(account.serialize()));
   });
 
   it('decodes an account', async () => {
@@ -40,5 +40,35 @@ describe("RLPAccountLib.sol", () => {
     expect(+result.balance).to.eq(bufferToInt(account.balance));
     expect(result.stateRoot).to.eq(bufferToHex(account.stateRoot));
     expect(result.codeHash).to.eq(bufferToHex(account.codeHash));
-  })
+  });
+
+  it('encodes an empty account', async () => {
+    account.nonce = Buffer.from([]);
+    account.balance = Buffer.from([]);
+    const result = await contract.methods.encodeAccount(account).call();
+    expect(result).to.eql(bufferToHex(account.serialize()));
+  });
+
+  it('decodes an empty account', async () => {
+    const result = await contract.methods.decodeAccount(account.serialize()).call();
+    expect(+result.nonce).to.eq(bufferToInt(account.nonce));
+    expect(+result.balance).to.eq(bufferToInt(account.balance));
+    expect(result.stateRoot).to.eq(bufferToHex(account.stateRoot));
+    expect(result.codeHash).to.eq(bufferToHex(account.codeHash));
+  });
+
+  it('encodes an empty account with single byte values', async () => {
+    account.nonce = Buffer.from('aa', 'hex');
+    account.balance = Buffer.from('bb', 'hex');
+    const result = await contract.methods.encodeAccount(account).call();
+    expect(result).to.eql(bufferToHex(account.serialize()));
+  });
+
+  it('decodes an empty account', async () => {
+    const result = await contract.methods.decodeAccount(account.serialize()).call();
+    expect(+result.nonce).to.eq(bufferToInt(account.nonce));
+    expect(+result.balance).to.eq(bufferToInt(account.balance));
+    expect(result.stateRoot).to.eq(bufferToHex(account.stateRoot));
+    expect(result.codeHash).to.eq(bufferToHex(account.codeHash));
+  });
 });
