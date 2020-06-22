@@ -105,12 +105,29 @@ const lib = (trie) => ({
         rlp.encode((divergent ? [ rlp.decode(divergent) ] : []).concat(simpleProof.filter((v) => v.length >= 0x20).map((v) => rlp.decode(v))))
       ]));
     } catch (e) {
-      // console.log(e.stack);
+      /*
+      --- Original ---
       return bufferToHex(Buffer.concat([
         Buffer.from([0xff]),
-        rlp.encode((await new Promise((resolve, reject) => baseTrie.findPath(
+        rlp.encode((await new Promise((resolve, reject) =>
+          trie.findPath(
             toBuffer(key),
             (err, _, __, path) => err ? reject(err) : resolve(path)))).map((v) => v.raw))
+      ]));
+      */
+      const pathData = await new Promise(
+          (resolve, reject) =>
+          baseTrie.findPath(
+              toBuffer(key),
+              (err, _, __, path) => err ? reject(err) : resolve(path)
+          )
+      );
+      const encoded = pathData
+        ? rlp.encode(pathData.map(v => v.raw))
+        : rlp.encode([]);
+      return bufferToHex(Buffer.concat([
+          Buffer.from([0xff]),
+          encoded
       ]));
     }
   }
