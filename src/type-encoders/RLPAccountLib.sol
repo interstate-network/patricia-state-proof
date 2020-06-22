@@ -32,36 +32,27 @@ library RLPAccountLib {
       /* store the size of the payload as the next byte */
       mstore8(ptr, sub(totalSize, 2))
       ptr := add(ptr, 1)
-      /* << Store nonce and its prefix >> */
-      switch noncePrefixSize
-      case 0 {
-        /* If nonce prefix size is 0, store nonce as the next byte */
-        mstore8(ptr, nonce)
-        ptr := add(ptr, 1)
+      function putVal(_ptr, prefixSize, val, valSize) -> newPtr {
+        newPtr := _ptr
+        switch prefixSize
+        case 0 {
+          // If prefix size is 0, store val as the next byte
+          switch val
+          // If the value is 0, store 0x80
+          case 0 { mstore8(newPtr, 0x80) }
+          default { mstore8(newPtr, val) }
+          newPtr := add(newPtr, 1)
+        }
+        default {
+          /* Otherwise, store nonce size as the next byte and then store nonce as the next n bytes */
+          mstore8(newPtr, add(0x80, valSize))
+          newPtr := add(newPtr, 1)
+          mstore(newPtr, shl(sub(0x100, mul(valSize, 8)), val))
+          newPtr := add(newPtr, valSize)
+        }
       }
-      default {
-        /* Otherwise, store nonce size as the next byte and then store nonce as the next n bytes */
-        mstore8(ptr, add(0x80, nonceSize))
-        ptr := add(ptr, 1)
-        mstore(ptr, shl(sub(0x100, mul(nonceSize, 8)), nonce))
-        ptr := add(ptr, nonceSize)
-      }
-
-      /* << Store balance and its prefix >> */
-      switch balancePrefixSize
-      case 0 {
-        /* If nonce prefix size is 0, store nonce as the next byte */
-        mstore8(ptr, _balance)
-        ptr := add(ptr, 1)
-      }
-      default {
-        /* Otherwise, store nonce size as the next byte and then store nonce as the next n bytes */
-        mstore8(ptr, add(0x80, balanceSize))
-        ptr := add(ptr, 1)
-        mstore(ptr, shl(sub(0x100, mul(balanceSize, 8)), _balance))
-        ptr := add(ptr, balanceSize)
-      }
-
+      ptr := putVal(ptr, noncePrefixSize, nonce, nonceSize)
+      ptr := putVal(ptr, balancePrefixSize, _balance, balanceSize)
 
       mstore8(ptr, 0xa0)
       ptr := add(ptr, 1)
