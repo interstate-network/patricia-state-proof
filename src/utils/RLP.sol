@@ -42,7 +42,7 @@ library RLP {
   bytes32 constant SIZEOF_MASK2 = 0x000000000000000000000000000000000000000000000000000000000000ff00;
   bytes32 constant SIZEOF_MASK1 = 0x00000000000000000000000000000000000000000000000000000000000000ff;
   function sizeofNumber(uint256 input) internal pure returns (uint256) {
-    if (input == 0) return 0;
+    if (input == 0) return 1;
     if (uint256(SIZEOF_MASK32) & input != 0) return 32;
     if (uint256(SIZEOF_MASK31) & input != 0) return 31;
     if (uint256(SIZEOF_MASK30) & input != 0) return 30;
@@ -168,7 +168,13 @@ library RLP {
     bytes memory retval;
     output.pass = true;
     bytes memory data = input.data;
-    if (input.pass || data.length == 1 && uint8(data[0]) < STRING_SHORT_PREFIX) return input;
+    if (input.pass || data.length == 1 && uint8(data[0]) < STRING_SHORT_PREFIX) {
+      if (uint8(data[0]) == 0) {
+        output.data = hex"80";
+        return output;
+      }
+      return input;
+    }
     else if (data.length < LARGE_ITEM_SIZE) {
       retval = new bytes(data.length + 1);
       retval[0] = byte(STRING_SHORT_PREFIX + uint8(data.length));
