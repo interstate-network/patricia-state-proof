@@ -149,7 +149,7 @@ describe("MPT.sol", () => {
         expect(proven.value).to.eq(null);
       });
 
-      /* PASSES */
+/*
       it('Always erroneously validates the neighbor', async () => {
         const result1 = await contract.methods.verifyProof(
           proofInfo.proof1.root,
@@ -161,8 +161,8 @@ describe("MPT.sol", () => {
           toHex(proofInfo.proof0.account.serialize())
         );
       });
+*/
 
-      /* FAILS - What should happen */
       it('Should prove an empty second account', async () => {
         const result1 = await contract.methods.verifyProof(
           proofInfo.proof1.root,
@@ -242,6 +242,6 @@ describe("MPT.sol", () => {
 
   describe('Should look for any bad paths', async () => {
     // it
-    for (let i = 0; i < 10; i++) itShouldExecuteTest(i);
+    for (let i = 0; i < 1; i++) itShouldExecuteTest(i);
   })
 });

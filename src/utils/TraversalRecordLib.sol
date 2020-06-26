@@ -57,8 +57,7 @@ library TraversalRecordLib {
     return record.targetData;
   }
   function getValue(TraversalRecord memory record) internal pure returns (bytes memory) {
-    // return getValueAsSlice(record).copy();
-    return record.targetData.copy();
+    return getValueAsSlice(record).copy();
   }
   function getNibbles(TraversalRecord memory record) internal pure returns (bytes memory) {
     return record.nibblesAtNode.getTargetData();
