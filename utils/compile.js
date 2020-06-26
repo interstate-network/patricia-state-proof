@@ -33,6 +33,10 @@ function compile(dir, fileName, importPath) {
             'abi', 'evm.bytecode.object', 'evm.bytecode.linkReferences'
           ]
         }
+      },
+      optimizer: {
+        enabled: true,
+        runs: 200
       }
     }
   };
