@@ -79,9 +79,11 @@ library StateProofLib {
     if (!success) return (false, bytes32(0));
     return (true, bytes32(RLP.decodePrefixedWord(tail.getValue())));
   }
+
   function computeStorageKey(bytes32 slot) internal pure returns (bytes memory key) {
     key = abi.encodePacked(keccak256(abi.encodePacked(slot)));
   }
+
   function updateStateRoot(Account.Account memory account, bytes32 slot, bytes32 _value, bytes memory proof)
   internal pure returns (bool inStorage, bytes32 newRoot, bytes32 oldValue) {
     bytes memory key = computeStorageKey(slot);
@@ -90,5 +92,35 @@ library StateProofLib {
     bytes memory newValue = RLP.encodeWithPrefix(uint256(_value));
     newRoot = MPT.updateRoot(tail, newValue);
     inStorage = isValid;
+  }
+
+  function subtractBalanceAndIncrementNonce(
+    bytes32 stateRoot, address accountAddress, bytes memory proof, uint256 balanceChange
+  ) internal pure returns (bytes32 newStateRoot) {
+    bytes memory key = calculateTrieKeyFromAddress(accountAddress);
+    // make sure the proof is valid, get the traversal record
+    (bool inState, TRL.TraversalRecord memory tail) = MPT.verifyProof(stateRoot, key, proof);
+    require(inState, "Invalid state proof for subtract balance.");
+    bytes memory provedValue = tail.getValue();
+    Account.Account memory account = Account.decodeAccount(provedValue);
+    require(account.balance >= balanceChange, "Insufficient balance.");
+    account.balance -= balanceChange;
+    account.nonce += 1;
+    bytes memory encodedNewAccount = account.encodeAccount();
+    newStateRoot = MPT.updateRoot(tail, encodedNewAccount);
+  }
+
+  function increaseBalance(
+    bytes32 stateRoot, address accountAddress, bytes memory proof, uint256 balanceChange
+  ) internal pure returns (bytes32 newStateRoot) {
+    bytes memory key = calculateTrieKeyFromAddress(accountAddress);
+    // make sure the proof is valid, get the traversal record
+    (bool inState, TRL.TraversalRecord memory tail) = MPT.verifyProof(stateRoot, key, proof);
+    require(inState, "Invalid state proof for increase balance.");
+    bytes memory provedValue = tail.getValue();
+    Account.Account memory account = Account.decodeAccount(provedValue);
+    account.balance += balanceChange;
+    bytes memory encodedNewAccount = account.encodeAccount();
+    newStateRoot = MPT.updateRoot(tail, encodedNewAccount);
   }
 }
