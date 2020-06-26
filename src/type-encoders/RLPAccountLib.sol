@@ -10,6 +10,12 @@ library RLPAccountLib {
     bytes32 codeHash;
   }
 
+  function isContract(Account memory account) internal pure returns (bool) {
+    return (
+      account.codeHash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470
+    );
+  }
+
   function encodeAccount(Account memory account) internal pure returns (bytes memory) {
     uint256 nonce = account.nonce;
     uint256 _balance = account.balance;
