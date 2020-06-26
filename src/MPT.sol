@@ -168,10 +168,20 @@ library MPT {
         locals.newLeaf[1] = newValue.toRLPItem();
         return walkBackProduceHashFromNode(record, maybeEmbed(RLP.encodeList(locals.newLeaf)).data.toSlice());
       }
-    } 
-    (/* TraversalRecordLib.NodeType typeCode */, SliceLib.Slice memory encodedPath) = fromEncodedPathToSlice(locals.toSegment[0].data.toSlice());
+    }
+    (
+      /* TraversalRecordLib.NodeType typeCode */,
+      SliceLib.Slice memory encodedPath
+    ) = fromEncodedPathToSlice(locals.toSegment[0].data.toSlice());
     locals.startIndex = record.nibblesPassed - encodedPath.length;
-    for (locals.branchIndex = 0; locals.branchIndex < encodedPath.length && locals.startIndex + locals.branchIndex < keyNibbles.length; locals.branchIndex++) {
+    for (
+      locals.branchIndex = 0;
+      (
+        locals.branchIndex < encodedPath.length &&
+        locals.startIndex + locals.branchIndex < keyNibbles.length
+      );
+      locals.branchIndex++
+    ) {
       if (keyNibbles[locals.branchIndex + locals.startIndex] != encodedPath.get(locals.branchIndex)) break;
     }
     locals.sharedPath = encodedPath.toSlice(0, locals.branchIndex);
@@ -185,7 +195,10 @@ library MPT {
     locals.newNodeEncoded = locals.newValueNibble == 0x10 ? locals.newLeaf[1] : maybeEmbed(RLP.encodeList(locals.newLeaf));
     locals.existingValueNibble = uint256(locals.branchIndex + 1 >= encodedPath.length ? 0x10 : uint8(encodedPath.get(locals.branchIndex)));
     locals.newBranch = new RLP.RLPItem[](17);
-    locals.existingNodeEncoded = record.typeCode == TraversalRecordLib.NodeType.LEAF && locals.existingValueNibble == 0x10 ? locals.toSegment[1] : maybeEmbed(RLP.encodeList(locals.toSegment));
+    locals.existingNodeEncoded = (
+      record.typeCode == TraversalRecordLib.NodeType.LEAF &&
+      locals.existingValueNibble == 0x10
+    ) ? locals.toSegment[1] : maybeEmbed(RLP.encodeList(locals.toSegment));
     locals.newBranch[locals.existingValueNibble] = locals.existingNodeEncoded;
     locals.newBranch[locals.newValueNibble] = locals.newNodeEncoded;
     locals.segment = RLP.encodeList(locals.newBranch);
@@ -217,7 +230,8 @@ library MPT {
       return removeLeaf(record);
     } else return createBranch(record, newValue);
   }
-  function verifyProof(bytes32 root, bytes memory key, bytes memory proof) internal pure returns (bool success, TraversalRecordLib.TraversalRecord memory tail) {
+  function verifyProof(bytes32 root, bytes memory key, bytes memory proof) internal pure
+  returns (bool success, TraversalRecordLib.TraversalRecord memory tail) {
     RLP.Walker memory selector = RLP.fromRlp(proof.toSlice(1)).enterList();
     Progress memory progress = Progress({
       nibbles: toNibbles(key.toSlice(), 0),
@@ -248,7 +262,11 @@ library MPT {
       } else {
         bool divergentCheck = traceDivergentNode(progress, optionalDivergentNode);
         if (!divergentCheck) return (false, progress.current);
-        return ((progress.current.typeCode == TraversalRecordLib.NodeType.VOID ? root == EMPTY_ROOT : progress.current.typeCode == TraversalRecordLib.NodeType.LEAF) || progress.current.nodesFromNull != 0, progress.current);
+        return (
+          (progress.current.typeCode == TraversalRecordLib.NodeType.VOID
+            ? root == EMPTY_ROOT
+            : progress.current.typeCode == TraversalRecordLib.NodeType.LEAF
+          ) || progress.current.nodesFromNull != 0, progress.current);
       }
     }
   }
