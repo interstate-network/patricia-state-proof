@@ -124,7 +124,7 @@ const lib = (trie) => ({
       );
       const encoded = pathData
         ? rlp.encode(pathData.map(v => v.raw))
-        : rlp.encode([]);
+        : rlp.encode(null)
       return bufferToHex(Buffer.concat([
           Buffer.from([0xff]),
           encoded
