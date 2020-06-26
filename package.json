@@ -5,8 +5,7 @@
   "main": "index.js",
   "scripts": {
     "mocha:ts": "mocha -r ts-node/register",
-    "test:state-proof": "yarn mocha:ts ./test/state-proof/test.spec.ts --timeout=5000",
-    "test:empty": "yarn mocha:ts ./test/state-proof/test-empty.spec.ts --timeout=5000"
+    "test:mpt": "yarn mocha:ts ./test/mpt/test.spec.ts --timeout=5000"
   },
   "keywords": [],
   "author": "",
