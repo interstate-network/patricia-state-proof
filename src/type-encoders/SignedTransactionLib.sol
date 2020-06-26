@@ -18,7 +18,7 @@ library SignedTransactionLib {
     bytes32 stateRoot;
   }
 
-  uint256 constant CHAIN_ID = 2020;
+  uint256 constant CHAIN_ID = 50005;
 
   function copyDataBuffer(uint256 ptr, bytes memory data, uint256 length)
   internal pure {
