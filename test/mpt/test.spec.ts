@@ -19,6 +19,7 @@ chai.use(chaiAsPromised);
 const { expect } = chai;
 
 // VM Exception while processing transaction: invalid opcode
+//
 
 function randomHexString(size) {
   const bytes = crypto.randomBytes(size);
