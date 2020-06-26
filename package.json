@@ -5,13 +5,16 @@
   "main": "index.js",
   "scripts": {
     "mocha:ts": "mocha -r ts-node/register",
-    "test:state-proof": "yarn mocha:ts ./test/state-proof/test.spec.ts --timeout=5000"
+    "test:state-proof": "yarn mocha:ts ./test/state-proof/test.spec.ts --timeout=5000",
+    "test:empty": "yarn mocha:ts ./test/state-proof/test-empty.spec.ts --timeout=5000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@types/chai-as-promised": "^7.1.2",
     "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
     "ethereumjs-tx": "^2.1.2",
     "ethereumjs-util": "^6.2.0",
     "ganache-cli": "^6.9.1",
