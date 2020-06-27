@@ -174,7 +174,21 @@ describe("MPT.sol", () => {
         expect(result1.value).to.eq(null);
       });
 
-      /* FAILS */
+      /* Fails with invalid opcode */
+      it('Should update the state with the first account', async () => {
+        const result = await contract.methods.updateRoot(
+          proofInfo.proof0.root,
+          proofInfo.proof0.addressHash,
+          proofInfo.proof0.proof,
+          proofInfo.proof0.account.serialize()
+        ).call();
+        expect(result.success).to.be.true;
+        /* Commented because it validates the neighbor instead of the correct node. */
+        // expect(result.oldValue).to.eq(null);
+        expect(result.newStateRoot).to.eq(proofInfo.proof1.root);
+      });
+
+      /* Fails by returning wrong state root */
       it('Should update the state with the second account', async () => {
         const result = await contract.methods.updateRoot(
           proofInfo.proof1.root,
